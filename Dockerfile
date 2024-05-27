@@ -1,12 +1,19 @@
-# Use the official Maven image to create a build artifact.
-# This is a multi-stage build. 
-FROM maven:3.8.1-openjdk-17-slim AS build
-COPY src /home/app/src
-COPY pom.xml /home/app
-RUN mvn -f /home/app/pom.xml clean package -DskipTests
+FROM eclipse-temurin:17.0.7_7-jre-alpine
 
-# Use the official OpenJDK image to run the application
-FROM openjdk:17-jdk-slim
-COPY --from=build /home/app/target/spacecraft-0.0.1-SNAPSHOT.jar /usr/local/lib/spacecraft.jar
+WORKDIR /app
+
+# Crear y declarar el usuario sin privilegios
+RUN addgroup -g 1000 -S app && adduser --uid 1000 -S app -G app
+
+# Copiar el archivo JAR y el script de ejecución
+COPY ./target/*.jar /app/app.jar
+
+# Cambio a usuario rootless
+USER app:app
+
+# Exponer los puertos necesarios
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/usr/local/lib/spacecraft.jar"]
+
+# run jar with the possibility of custom java flags and arguments
+ENV JAVA_OPTS=""
+ENTRYPOINT ["sh", "-c", "env $(grep -v '^#' /app/.env | xargs) java ${JAVA_OPTS} -jar /app/app.jar ${0} ${@}"]

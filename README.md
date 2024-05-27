@@ -31,3 +31,7 @@ de base de datos.
 * Seguridad del API.
 * Implementar algún consumer/producer para algún broker (Rabbit,
 Kafka, etc).
+
+## SWAGGER 
+
+*http://localhost:8080/swagger-ui/index.html
