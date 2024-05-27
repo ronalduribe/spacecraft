@@ -1,0 +1,32 @@
+### Obtener todas las naves espaciales con paginación
+GET http://localhost:8080/api/spacecrafts?page=0&size=5
+Accept: application/json
+
+### Crear una nueva nave espacial
+POST http://localhost:8080/api/spacecrafts
+Content-Type: application/json
+
+{
+  "name": "TIE Fighter",
+  "series": "Star Wars"
+}
+
+### Consultar una única nave por id
+GET http://localhost:8080/api/spacecrafts/1
+Accept: application/json
+
+### Modificar una nave espacial existente
+PUT http://localhost:8080/api/spacecrafts/1
+Content-Type: application/json
+
+{
+  "name": "Updated TIE Fighter",
+  "series": "Star Wars"
+}
+
+### Eliminar una nave espacial por id
+DELETE http://localhost:8080/api/spacecrafts/1
+
+### Consultar todas las naves que contienen "wing" en su nombre
+GET http://localhost:8080/api/spacecrafts/search?name=wing
+Accept: application/json
