@@ -1,6 +1,0 @@
-run docker container
-docker run -d -p 8080:8080 --name spacecraft spacecraft
- 
-build docker image
-docker build -t spacecraft -f Dockerfile .
-mvn clean install
