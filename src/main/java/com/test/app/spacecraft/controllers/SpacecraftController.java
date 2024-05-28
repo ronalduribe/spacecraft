@@ -24,10 +24,14 @@ import com.test.app.spacecraft.models.service.SpacecraftService;
 @RequestMapping("/api/spacecrafts")
 public class SpacecraftController {
 
-    @Autowired
-    private SpacecraftService spacecraftService;
+    private final SpacecraftService spacecraftService;
+    
 
-    @GetMapping
+    public SpacecraftController(SpacecraftService spacecraftService) {
+		this.spacecraftService = spacecraftService;
+	}
+
+	@GetMapping
     public ResponseEntity<Page<SpacecraftDTO>> getAllSpacecrafts(Pageable pageable) {
         Page<SpacecraftDTO> spacecrafts = spacecraftService.findAll(pageable);
         return ResponseEntity.ok(spacecrafts);
