@@ -1,8 +1,9 @@
 package com.test.app.spacecraft.models.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,37 +11,50 @@ import org.springframework.stereotype.Service;
 
 import com.test.app.spacecraft.exception.ResourceNotFoundException;
 import com.test.app.spacecraft.models.dao.SpacecraftRepository;
+import com.test.app.spacecraft.models.dto.SpacecraftDTO;
 import com.test.app.spacecraft.models.entity.Spacecraft;
 
 @Service
 public class SpacecraftService {
+	
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private SpacecraftRepository spacecraftRepository;
+    private final SpacecraftRepository spacecraftRepository;
 
-    public Page<Spacecraft> findAll(Pageable pageable) {
-        return spacecraftRepository.findAll(pageable);
+    public SpacecraftService(SpacecraftRepository spacecraftRepository, ModelMapper modelMapper) {
+        this.spacecraftRepository = spacecraftRepository;
+        this.modelMapper = modelMapper;
+    }
+
+    public Page<SpacecraftDTO> findAll(Pageable pageable) {
+        return spacecraftRepository.findAll(pageable).map(this::convertToDTO);
     }
 
     @Cacheable("spacecraft")
-    public Spacecraft findById(Long id) {
+    public SpacecraftDTO findById(Long id) {
         return spacecraftRepository.findById(id)
+                .map(this::convertToDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Spacecraft not found with id " + id));
     }
 
-    public List<Spacecraft> findByNameContaining(String name) {
-        return spacecraftRepository.findByNameContaining(name);
+    public List<SpacecraftDTO> findByNameContaining(String name) {
+        return spacecraftRepository.findByNameContaining(name).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public Spacecraft save(Spacecraft spacecraft) {
-        return spacecraftRepository.save(spacecraft);
+    public SpacecraftDTO save(SpacecraftDTO spacecraftDTO) {
+        Spacecraft spacecraft = convertToEntity(spacecraftDTO);
+        return convertToDTO(spacecraftRepository.save(spacecraft));
     }
 
-    public Spacecraft update(Spacecraft spacecraft) {
-        if (!spacecraftRepository.existsById(spacecraft.getId())) {
-            throw new ResourceNotFoundException("Spacecraft not found with id " + spacecraft.getId());
+    public SpacecraftDTO update(SpacecraftDTO spacecraftDTO) {
+        if (!spacecraftRepository.existsById(spacecraftDTO.getId())) {
+            throw new ResourceNotFoundException("Spacecraft not found with id " + spacecraftDTO.getId());
         }
-        return spacecraftRepository.save(spacecraft);
+        
+        Spacecraft spacecraft = convertToEntity(spacecraftDTO);
+        return convertToDTO(spacecraftRepository.save(spacecraft));
     }
 
     public void deleteById(Long id) {
@@ -49,4 +63,13 @@ public class SpacecraftService {
         }
         spacecraftRepository.deleteById(id);
     }
+
+    private SpacecraftDTO convertToDTO(Spacecraft spacecraft) {
+        return modelMapper.map(spacecraft, SpacecraftDTO.class);
+    }
+
+    private Spacecraft convertToEntity(SpacecraftDTO spacecraftDTO) {
+    	return modelMapper.map(spacecraftDTO, Spacecraft.class);
+    }
 }
+
