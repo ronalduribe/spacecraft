@@ -28,7 +28,8 @@ import org.springframework.data.domain.Pageable;
 
 import com.test.app.spacecraft.exception.ResourceNotFoundException;
 import com.test.app.spacecraft.models.dao.SpacecraftRepository;
-import com.test.app.spacecraft.models.dto.SpacecraftDTO;
+import com.test.app.spacecraft.models.dto.SpacecraftRequestDTO;
+import com.test.app.spacecraft.models.dto.SpacecraftResponseDTO;
 import com.test.app.spacecraft.models.entity.Spacecraft;
 import com.test.app.spacecraft.models.service.SpacecraftService;
 
@@ -52,14 +53,14 @@ public class SpacecraftServiceTest {
 
     @Test
     public void testFindById() {
-        Spacecraft spacecraft = new Spacecraft("Spacecraft 1", "Series 1");
+        Spacecraft spacecraft = new Spacecraft(1L, "Spacecraft 1", "Series 1");
         when(spacecraftRepository.findById(1L)).thenReturn(Optional.of(spacecraft));
-        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftDTO.class))).thenAnswer(invocation -> {
+        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftResponseDTO.class))).thenAnswer(invocation -> {
             Spacecraft space = invocation.getArgument(0);
-            return new SpacecraftDTO(space.getId(), space.getName(), space.getSeries());
+            return new SpacecraftResponseDTO(space.getId(), space.getName(), space.getSeries());
         });
 
-        SpacecraftDTO result = spacecraftService.findById(1L);
+        SpacecraftResponseDTO result = spacecraftService.findById(1L);
         assertEquals("Spacecraft 1", result.getName());
         assertEquals("Series 1", result.getSeries());
     }
@@ -73,17 +74,17 @@ public class SpacecraftServiceTest {
     @Test
     public void testFindByNameContaining() {
         List<Spacecraft> spacecraftList = new ArrayList<>();
-        spacecraftList.add(new Spacecraft("Spacecraft 1", "Series 1"));
-        spacecraftList.add(new Spacecraft("Spacecraft 2", "Series 2"));
+        spacecraftList.add(new Spacecraft(1L,"Spacecraft 1", "Series 1"));
+        spacecraftList.add(new Spacecraft(2L,"Spacecraft 2", "Series 2"));
 
         when(spacecraftRepository.findByNameContaining("craft")).thenReturn(spacecraftList);
 
-        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftDTO.class))).thenAnswer(invocation -> {
+        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftResponseDTO.class))).thenAnswer(invocation -> {
             Spacecraft s = invocation.getArgument(0);
-            return new SpacecraftDTO(s.getName(), s.getSeries());
+            return new SpacecraftResponseDTO(s.getId(), s.getName(), s.getSeries());
         });
 
-        List<SpacecraftDTO> result = spacecraftService.findByNameContaining("craft");
+        List<SpacecraftResponseDTO> result = spacecraftService.findByNameContaining("craft");
 
         assertEquals(2, result.size());
         assertEquals("Spacecraft 1", result.get(0).getName());
@@ -91,14 +92,15 @@ public class SpacecraftServiceTest {
 
     @Test
     public void testSave() {
-        SpacecraftDTO spacecraftDTO = new SpacecraftDTO(1L, "New Spacecraft", "New Series");
-        Spacecraft spacecraft = new Spacecraft("New Spacecraft", "New Series");
+        SpacecraftRequestDTO spacecraftRequestDTO = new SpacecraftRequestDTO("New Spacecraft", "New Series");
+        SpacecraftResponseDTO spacecraftResponseDTO = new SpacecraftResponseDTO(1L, "New Spacecraft", "New Series");
+        Spacecraft spacecraft = new Spacecraft(1L, "New Spacecraft", "New Series");
 
-        when(modelMapper.map(any(SpacecraftDTO.class), eq(Spacecraft.class))).thenReturn(spacecraft);
-        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftDTO.class))).thenReturn(spacecraftDTO);
+        when(modelMapper.map(any(SpacecraftRequestDTO.class), eq(Spacecraft.class))).thenReturn(spacecraft);
+        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftResponseDTO.class))).thenReturn(spacecraftResponseDTO);
         when(spacecraftRepository.save(spacecraft)).thenReturn(spacecraft);
 
-        SpacecraftDTO result = spacecraftService.save(spacecraftDTO);
+        SpacecraftResponseDTO result = spacecraftService.save(spacecraftRequestDTO);
 
         assertNotNull(result.getId());
         assertEquals("New Spacecraft", result.getName());
@@ -107,15 +109,17 @@ public class SpacecraftServiceTest {
 
     @Test
     public void testUpdate() {
-        SpacecraftDTO spacecraftDTO = new SpacecraftDTO(1L, "Updated Spacecraft", "Updated Series");
-        Spacecraft spacecraft = new Spacecraft("Updated Spacecraft", "Updated Series");
-
-        when(modelMapper.map(any(SpacecraftDTO.class), eq(Spacecraft.class))).thenReturn(spacecraft);
-        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftDTO.class))).thenReturn(spacecraftDTO);
-        when(spacecraftRepository.existsById(1L)).thenReturn(true);
+        
+    	SpacecraftRequestDTO spacecraftRequestDTO = new SpacecraftRequestDTO("Updated Spacecraft", "Updated Series");
+    	SpacecraftResponseDTO spacecraftDTO = new SpacecraftResponseDTO(1L, "Updated Spacecraft", "Updated Series");
+        Spacecraft spacecraft = new Spacecraft(1L, "Updated Spacecraft", "Updated Series");
+        
+        when(spacecraftRepository.findById(1L)).thenReturn(Optional.of(spacecraft));
+        when(modelMapper.map(any(SpacecraftResponseDTO.class), eq(Spacecraft.class))).thenReturn(spacecraft);
+        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftResponseDTO.class))).thenReturn(spacecraftDTO);
         when(spacecraftRepository.save(spacecraft)).thenReturn(spacecraft);
 
-        SpacecraftDTO result = spacecraftService.update(spacecraftDTO);
+        SpacecraftResponseDTO result = spacecraftService.update(1L, spacecraftRequestDTO);
 
         assertEquals(1L, result.getId());
         assertEquals("Updated Spacecraft", result.getName());
@@ -131,21 +135,20 @@ public class SpacecraftServiceTest {
     
     @Test
     public void testFindAll() {
-        Spacecraft spacecraft1 = new Spacecraft("X-Wing", "Star Wars");
-        Spacecraft spacecraft2 = new Spacecraft("TIE Fighter", "Star Wars");
+        Spacecraft spacecraft1 = new Spacecraft(1L, "X-Wing", "Star Wars");
+        Spacecraft spacecraft2 = new Spacecraft(2L, "TIE Fighter", "Star Wars");
         List<Spacecraft> spacecraftList = Arrays.asList(spacecraft1, spacecraft2);
         Page<Spacecraft> page = new PageImpl<>(spacecraftList);
 
         Pageable pageable = PageRequest.of(0, 10);
         when(spacecraftRepository.findAll(pageable)).thenReturn(page);
-
-        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftDTO.class)))
+        when(modelMapper.map(any(Spacecraft.class), eq(SpacecraftResponseDTO.class)))
             .thenAnswer(invocation -> {
                 Spacecraft s = invocation.getArgument(0);
-                return new SpacecraftDTO(s.getName(), s.getSeries());
+                return new SpacecraftResponseDTO(s.getId(), s.getName(), s.getSeries());
             });
 
-        Page<SpacecraftDTO> result = spacecraftService.findAll(pageable);
+        Page<SpacecraftResponseDTO> result = spacecraftService.findAll(pageable);
 
         assertEquals(2, result.getTotalElements());
         assertEquals(spacecraft1.getName(), result.getContent().get(0).getName());

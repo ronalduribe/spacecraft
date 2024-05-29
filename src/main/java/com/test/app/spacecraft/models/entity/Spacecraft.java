@@ -7,17 +7,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Entity
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
+@Data
 @AllArgsConstructor
+@Entity
 public class Spacecraft implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -29,13 +23,9 @@ public class Spacecraft implements Serializable {
     private String name;
     
     private String series;
-    
-    public Spacecraft() {
-    }
-    
-    public Spacecraft(String name, String series) {
-        this.name = name;
-        this.series = series;
-    }
+
+	public Spacecraft() {
+	}
+     
     
 }

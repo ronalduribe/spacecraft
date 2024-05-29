@@ -2,7 +2,6 @@ package com.test.app.spacecraft.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.test.app.spacecraft.models.dto.SpacecraftDTO;
+import com.test.app.spacecraft.models.dto.SpacecraftRequestDTO;
+import com.test.app.spacecraft.models.dto.SpacecraftResponseDTO;
 import com.test.app.spacecraft.models.service.SpacecraftService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/spacecrafts")
@@ -32,37 +34,42 @@ public class SpacecraftController {
 	}
 
 	@GetMapping
-    public ResponseEntity<Page<SpacecraftDTO>> getAllSpacecrafts(Pageable pageable) {
-        Page<SpacecraftDTO> spacecrafts = spacecraftService.findAll(pageable);
+    public ResponseEntity<Page<SpacecraftResponseDTO>> getAllSpacecrafts(Pageable pageable) {
+        Page<SpacecraftResponseDTO> spacecrafts = spacecraftService.findAll(pageable);
         return ResponseEntity.ok(spacecrafts);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SpacecraftDTO> getSpacecraftById(@PathVariable Long id) {
-    	SpacecraftDTO spacecraft = spacecraftService.findById(id);
+    public ResponseEntity<SpacecraftResponseDTO> getSpacecraftById(@PathVariable Long id) {
+    	SpacecraftResponseDTO spacecraft = spacecraftService.findById(id);
         return new ResponseEntity<>(spacecraft, HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public List<SpacecraftDTO> getSpacecraftsByName(@RequestParam String name) {
+    public List<SpacecraftResponseDTO> getSpacecraftsByName(@RequestParam String name) {
         return spacecraftService.findByNameContaining(name);
     }
 
+    
     @PostMapping
-    public ResponseEntity<SpacecraftDTO> createSpacecraft(@RequestBody SpacecraftDTO spacecraft) {
-        return new ResponseEntity<>(spacecraftService.save(spacecraft), HttpStatus.CREATED);
+    public ResponseEntity<SpacecraftResponseDTO> createSpacecraft(@Valid @RequestBody SpacecraftRequestDTO spacecraftRequestDTO) {
+        try {
+            SpacecraftResponseDTO createdSpacecraft = spacecraftService.save(spacecraftRequestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSpacecraft);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SpacecraftDTO> updateSpacecraft(@PathVariable Long id, @RequestBody SpacecraftDTO spacecraft) {
-        spacecraft.setId(id);
-        SpacecraftDTO updatedSpacecraft = spacecraftService.update(spacecraft);
-        return new ResponseEntity<>(updatedSpacecraft, HttpStatus.OK);
+    public ResponseEntity<SpacecraftResponseDTO> updateSpacecraft(@PathVariable Long id, @Valid @RequestBody SpacecraftRequestDTO spacecraftRequestDTO) {
+        SpacecraftResponseDTO updatedSpacecraft = spacecraftService.update(id, spacecraftRequestDTO);
+        return ResponseEntity.ok(updatedSpacecraft);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSpacecraft(@PathVariable Long id) {
         spacecraftService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
