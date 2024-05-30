@@ -10,6 +10,4 @@ public class SpacecraftResponseDTO {
     private String name;
     private String series;
     
-    public SpacecraftResponseDTO() {}
-    
 }

@@ -14,6 +14,4 @@ public class SpacecraftRequestDTO {
     @NotBlank
     private String series;
     
-    public SpacecraftRequestDTO() {}
-    
 }
