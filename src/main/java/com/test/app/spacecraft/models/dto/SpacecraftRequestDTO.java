@@ -1,17 +1,17 @@
 package com.test.app.spacecraft.models.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SpacecraftRequestDTO {
    
-	@NotBlank
-    private String name;
-    @NotBlank
-    private String series;
+	@NotNull(message = "field name required")
+    private final String name;
+    @NotNull(message = "field series required")
+    private final String series;
     
 }

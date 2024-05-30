@@ -2,14 +2,16 @@ package com.test.app.spacecraft.models.entity;
 
 import java.io.Serializable;
 
+import org.springframework.lang.NonNull;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Data
 @AllArgsConstructor
@@ -23,10 +25,10 @@ public class Spacecraft implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-	@NotBlank
-    private String name;
+	@NonNull
+	private String name;
     
-	@NotBlank
+	@NonNull 
     private String series;
 
 }
