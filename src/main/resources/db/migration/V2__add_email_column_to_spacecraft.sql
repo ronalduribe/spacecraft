@@ -1,0 +1,2 @@
+ALTER TABLE spacecrafts
+ADD COLUMN email VARCHAR(255);

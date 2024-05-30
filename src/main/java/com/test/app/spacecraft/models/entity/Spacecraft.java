@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Entity(name="spacecrafts")
 public class Spacecraft implements Serializable {
 
 	private static final long serialVersionUID = 1L;
